@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from app.schemas.process import ProcessRequest, ProcessResponse
+from app.schemas.process import ProcessRequest, ProcessResponse, ProcessChunkRequest, Chunk
 from app.services.orchestrator import Orchestrator
 
 router = APIRouter()
@@ -12,5 +12,12 @@ def get_orchestrator():
 async def process_text(request: ProcessRequest, orchestrator: Orchestrator = Depends(get_orchestrator)):
     try:
         return orchestrator.process(request)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/chunk", response_model=Chunk)
+async def process_single_chunk(request: ProcessChunkRequest, orchestrator: Orchestrator = Depends(get_orchestrator)):
+    try:
+        return orchestrator.process_single_chunk(request.chunk, request.action)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

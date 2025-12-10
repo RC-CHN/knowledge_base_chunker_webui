@@ -1,6 +1,12 @@
 from typing import List
 from app.schemas.process import Chunk
 from app.core.llm_client import MultimodalLLMClient
+from app.core.prompts import (
+    CLEAN_TEXT_SYSTEM_PROMPT,
+    CLEAN_TEXT_USER_PROMPT_TEMPLATE,
+    SUMMARIZE_TEXT_SYSTEM_PROMPT,
+    SUMMARIZE_TEXT_USER_PROMPT_TEMPLATE
+)
 
 class ProcessingService:
     def __init__(self, llm_client: MultimodalLLMClient):
@@ -10,15 +16,9 @@ class ProcessingService:
         """
         Clean the text of a chunk using LLM.
         """
-        prompt = f"""
-        Please clean the following text. Fix grammar, remove irrelevant noise, and ensure it is coherent. 
-        Do not change the core meaning.
+        prompt = CLEAN_TEXT_USER_PROMPT_TEMPLATE.format(text=chunk.content)
         
-        Text:
-        {chunk.content}
-        """
-        
-        cleaned_text = self.llm_client.get_completion(prompt, system_prompt="You are a helpful editor.")
+        cleaned_text = self.llm_client.get_completion(prompt, system_prompt=CLEAN_TEXT_SYSTEM_PROMPT)
         chunk.content = cleaned_text
         return chunk
 
@@ -26,14 +26,9 @@ class ProcessingService:
         """
         Generate a summary for the chunk.
         """
-        prompt = f"""
-        Please provide a concise summary of the following text.
+        prompt = SUMMARIZE_TEXT_USER_PROMPT_TEMPLATE.format(text=chunk.content)
         
-        Text:
-        {chunk.content}
-        """
-        
-        summary = self.llm_client.get_completion(prompt, system_prompt="You are a helpful summarizer.")
+        summary = self.llm_client.get_completion(prompt, system_prompt=SUMMARIZE_TEXT_SYSTEM_PROMPT)
         chunk.summary = summary
         return chunk
 

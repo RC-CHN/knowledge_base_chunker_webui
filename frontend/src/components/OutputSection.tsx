@@ -1,9 +1,10 @@
 import React from 'react';
 import { Card, List, Tag, Button, Tooltip, Typography, Space, Spin, message, Input, Checkbox, Dropdown } from 'antd';
 import type { MenuProps } from 'antd';
-import { CopyOutlined, ThunderboltOutlined, InfoCircleOutlined, EditOutlined, SaveOutlined, DownloadOutlined, DownOutlined } from '@ant-design/icons';
+import { CopyOutlined, ThunderboltOutlined, InfoCircleOutlined, EditOutlined, SaveOutlined, DownloadOutlined, DownOutlined, ClearOutlined, FileTextOutlined } from '@ant-design/icons';
 import type { Chunk } from '../types';
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const { Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -19,11 +20,39 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editContent, setEditContent] = useState('');
   const [selectedChunks, setSelectedChunks] = useState<Set<number>>(new Set());
+  const [processingChunkIds, setProcessingChunkIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     setChunks(initialChunks);
     setSelectedChunks(new Set());
   }, [initialChunks]);
+
+  const handleProcessChunk = async (index: number, action: 'clean' | 'summarize') => {
+    const chunk = chunks[index];
+    setProcessingChunkIds(prev => new Set(prev).add(index));
+
+    try {
+      const response = await axios.post('http://localhost:8000/api/v1/process/chunk', {
+        chunk: chunk,
+        action: action
+      });
+
+      const updatedChunk = response.data;
+      const newChunks = [...chunks];
+      newChunks[index] = updatedChunk;
+      setChunks(newChunks);
+      message.success(`Chunk ${action === 'clean' ? 'cleaned' : 'summarized'} successfully`);
+    } catch (error) {
+      console.error(`Error ${action}ing chunk:`, error);
+      message.error(`Failed to ${action} chunk`);
+    } finally {
+      setProcessingChunkIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(index);
+        return newSet;
+      });
+    }
+  };
 
   const handleEdit = (index: number, content: string) => {
     setEditingId(index);
@@ -159,14 +188,34 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
                             />
                           </Tooltip>
                         ) : (
-                          <Tooltip title="Edit">
-                            <Button
-                              type="text"
-                              icon={<EditOutlined />}
-                              size="small"
-                              onClick={() => handleEdit(index, item.content)}
-                            />
-                          </Tooltip>
+                          <>
+                            <Tooltip title="Clean Text">
+                              <Button
+                                type="text"
+                                icon={<ClearOutlined />}
+                                size="small"
+                                loading={processingChunkIds.has(index)}
+                                onClick={() => handleProcessChunk(index, 'clean')}
+                              />
+                            </Tooltip>
+                            <Tooltip title="Summarize">
+                              <Button
+                                type="text"
+                                icon={<FileTextOutlined />}
+                                size="small"
+                                loading={processingChunkIds.has(index)}
+                                onClick={() => handleProcessChunk(index, 'summarize')}
+                              />
+                            </Tooltip>
+                            <Tooltip title="Edit">
+                              <Button
+                                type="text"
+                                icon={<EditOutlined />}
+                                size="small"
+                                onClick={() => handleEdit(index, item.content)}
+                              />
+                            </Tooltip>
+                          </>
                         )}
                         <Tooltip title="Copy">
                           <Button

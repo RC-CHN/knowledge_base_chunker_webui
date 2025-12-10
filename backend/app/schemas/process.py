@@ -26,3 +26,7 @@ class Chunk(BaseModel):
 class ProcessResponse(BaseModel):
     chunks: List[Chunk] = Field(..., description="The list of processed chunks.")
     total_chunks: int = Field(..., description="The total number of chunks.")
+
+class ProcessChunkRequest(BaseModel):
+    chunk: Chunk = Field(..., description="The chunk to process.")
+    action: Literal["clean", "summarize"] = Field(..., description="The action to perform.")

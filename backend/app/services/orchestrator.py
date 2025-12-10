@@ -73,3 +73,20 @@ class Orchestrator:
             chunk.token_count = self._count_tokens(chunk.content)
 
         return ProcessResponse(chunks=chunks, total_chunks=len(chunks))
+
+    def process_single_chunk(self, chunk: Chunk, action: str) -> Chunk:
+        if not self.processing_service:
+             raise Exception("Processing service not available")
+        
+        if action == "clean":
+            chunk = self.processing_service.clean_chunk(chunk)
+        elif action == "summarize":
+            chunk = self.processing_service.generate_summary(chunk)
+        else:
+            raise ValueError(f"Invalid action: {action}")
+            
+        # Recount tokens if content changed (cleaning)
+        if action == "clean":
+            chunk.token_count = self._count_tokens(chunk.content)
+            
+        return chunk
