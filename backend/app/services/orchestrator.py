@@ -35,7 +35,7 @@ class Orchestrator:
             return len(self.tokenizer.encode(text))
         return 0
 
-    def process(self, request: ProcessRequest) -> ProcessResponse:
+    async def process(self, request: ProcessRequest) -> ProcessResponse:
         chunks: List[Chunk] = []
         
         # 1. Chunking Phase
@@ -66,7 +66,7 @@ class Orchestrator:
             summarize = request.processing_options.generate_summary
             
             if clean or summarize:
-                chunks = self.processing_service.process_chunks(chunks, clean=clean, summarize=summarize)
+                chunks = await self.processing_service.process_chunks(chunks, clean=clean, summarize=summarize)
         
         # 3. Token Counting
         for chunk in chunks:
@@ -74,14 +74,14 @@ class Orchestrator:
 
         return ProcessResponse(chunks=chunks, total_chunks=len(chunks))
 
-    def process_single_chunk(self, chunk: Chunk, action: str) -> Chunk:
+    async def process_single_chunk(self, chunk: Chunk, action: str) -> Chunk:
         if not self.processing_service:
              raise Exception("Processing service not available")
         
         if action == "clean":
-            chunk = self.processing_service.clean_chunk(chunk)
+            chunk = await self.processing_service.clean_chunk(chunk)
         elif action == "summarize":
-            chunk = self.processing_service.generate_summary(chunk)
+            chunk = await self.processing_service.generate_summary(chunk)
         else:
             raise ValueError(f"Invalid action: {action}")
             

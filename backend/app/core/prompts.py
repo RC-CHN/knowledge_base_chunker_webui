@@ -6,7 +6,8 @@ Please clean the following text.
 3. Ensure the text is coherent and flows well.
 4. Do not change the core meaning of the text.
 5. **CRITICAL**: Output the cleaned text in the SAME LANGUAGE as the original text.
-6. **CRITICAL**: Wrap the cleaned text in <cleaned_text> tags.
+6. **CRITICAL**: Do NOT use Markdown formatting (e.g., bold, italic, headers) in the output.
+7. **CRITICAL**: Wrap the cleaned text in <cleaned_text> tags.
 
 Here are some examples:
 
@@ -44,7 +45,8 @@ Please provide a concise summary of the following text.
 1. Capture the main points and key ideas.
 2. Keep the summary brief and to the point.
 3. **CRITICAL**: Output the summary in the SAME LANGUAGE as the original text.
-4. **CRITICAL**: Wrap the summary in <summary> tags.
+4. **CRITICAL**: Do NOT use Markdown formatting (e.g., bold, italic, headers) in the output.
+5. **CRITICAL**: Wrap the summary in <summary> tags.
 
 Here are some examples:
 

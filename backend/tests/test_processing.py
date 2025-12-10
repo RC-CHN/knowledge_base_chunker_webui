@@ -30,7 +30,7 @@ class TestProcessingService(unittest.TestCase):
         self.mock_llm_client.get_completion.return_value = "<cleaned_text>Cleaned text</cleaned_text>"
         
         # Run async method in sync context
-        cleaned_chunk = asyncio.run(self.processing_service._clean_chunk_async(chunk))
+        cleaned_chunk = asyncio.run(self.processing_service.clean_chunk(chunk))
         
         self.assertEqual(cleaned_chunk.content, "Cleaned text")
         self.mock_llm_client.get_completion.assert_called_once()
@@ -40,7 +40,7 @@ class TestProcessingService(unittest.TestCase):
         self.mock_llm_client.get_completion.return_value = "<summary>Summary text</summary>"
         
         # Run async method in sync context
-        summarized_chunk = asyncio.run(self.processing_service._generate_summary_async(chunk))
+        summarized_chunk = asyncio.run(self.processing_service.generate_summary(chunk))
         
         self.assertEqual(summarized_chunk.summary, "Summary text")
         self.mock_llm_client.get_completion.assert_called_once()

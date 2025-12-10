@@ -27,7 +27,7 @@ class ProcessingService:
             return match.group(1).strip()
         return text.strip()
 
-    async def _clean_chunk_async(self, chunk: Chunk) -> Chunk:
+    async def clean_chunk(self, chunk: Chunk) -> Chunk:
         async with self.semaphore:
             prompt = CLEAN_TEXT_USER_PROMPT_TEMPLATE.format(text=chunk.content)
             # Note: LLMClient is synchronous, so we run it in a thread executor to avoid blocking
@@ -41,7 +41,7 @@ class ProcessingService:
             chunk.content = self._extract_content(cleaned_text_raw, "cleaned_text")
             return chunk
 
-    async def _generate_summary_async(self, chunk: Chunk) -> Chunk:
+    async def generate_summary(self, chunk: Chunk) -> Chunk:
         async with self.semaphore:
             prompt = SUMMARIZE_TEXT_USER_PROMPT_TEMPLATE.format(text=chunk.content)
             # Note: LLMClient is synchronous, so we run it in a thread executor to avoid blocking
@@ -55,25 +55,7 @@ class ProcessingService:
             chunk.summary = self._extract_content(summary_raw, "summary")
             return chunk
 
-    def clean_chunk(self, chunk: Chunk) -> Chunk:
-        """
-        Clean the text of a chunk using LLM (Synchronous wrapper).
-        """
-        return asyncio.run(self._clean_chunk_async(chunk))
-
-    def generate_summary(self, chunk: Chunk) -> Chunk:
-        """
-        Generate a summary for the chunk (Synchronous wrapper).
-        """
-        return asyncio.run(self._generate_summary_async(chunk))
-
-    def process_chunks(self, chunks: List[Chunk], clean: bool = False, summarize: bool = False) -> List[Chunk]:
-        """
-        Process a list of chunks concurrently.
-        """
-        return asyncio.run(self._process_chunks_async(chunks, clean, summarize))
-
-    async def _process_chunks_async(self, chunks: List[Chunk], clean: bool = False, summarize: bool = False) -> List[Chunk]:
+    async def process_chunks(self, chunks: List[Chunk], clean: bool = False, summarize: bool = False) -> List[Chunk]:
         tasks = []
         for chunk in chunks:
             task = self._process_single_chunk_async(chunk, clean, summarize)
@@ -83,9 +65,9 @@ class ProcessingService:
 
     async def _process_single_chunk_async(self, chunk: Chunk, clean: bool, summarize: bool) -> Chunk:
         if clean:
-            chunk = await self._clean_chunk_async(chunk)
+            chunk = await self.clean_chunk(chunk)
         
         if summarize:
-            chunk = await self._generate_summary_async(chunk)
+            chunk = await self.generate_summary(chunk)
             
         return chunk

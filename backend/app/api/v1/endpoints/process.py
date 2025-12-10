@@ -11,13 +11,13 @@ def get_orchestrator():
 @router.post("/", response_model=ProcessResponse)
 async def process_text(request: ProcessRequest, orchestrator: Orchestrator = Depends(get_orchestrator)):
     try:
-        return orchestrator.process(request)
+        return await orchestrator.process(request)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/chunk", response_model=Chunk)
 async def process_single_chunk(request: ProcessChunkRequest, orchestrator: Orchestrator = Depends(get_orchestrator)):
     try:
-        return orchestrator.process_single_chunk(request.chunk, request.action)
+        return await orchestrator.process_single_chunk(request.chunk, request.action)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
