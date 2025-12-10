@@ -120,8 +120,8 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
           </Space>
         </div>
       }
-      style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
-      styles={{ body: { flex: 1, overflow: 'hidden', padding: 0, display: 'flex', flexDirection: 'column', background: '#fafafa' } }}
+      style={{ display: 'flex', flexDirection: 'column', height: '100%', maxHeight: 'calc(100vh - 112px)' }}
+      styles={{ body: { flex: 1, overflow: 'hidden', padding: 0, display: 'flex', flexDirection: 'column', background: '#fafafa', height: '100%' } }}
     >
       {loading ? (
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
