@@ -16,21 +16,51 @@ const InputSection: React.FC<InputSectionProps> = ({ text, setText }) => {
       title={
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Space><FileTextOutlined /> Source Document</Space>
-          <Upload 
-            beforeUpload={(file) => {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                const content = e.target?.result;
-                if (typeof content === 'string') {
-                  setText(content);
-                  message.success('File loaded successfully');
+          <Upload
+            beforeUpload={async (file) => {
+              const isTextFile = file.type === 'text/plain' || file.name.endsWith('.md') || file.name.endsWith('.json') || file.name.endsWith('.csv');
+              
+              if (isTextFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  const content = e.target?.result;
+                  if (typeof content === 'string') {
+                    setText(content);
+                    message.success('File loaded successfully');
+                  }
+                };
+                reader.readAsText(file);
+              } else {
+                // For PDF, DOCX, etc., upload to backend for processing
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const hide = message.loading('Processing file with VLM...', 0);
+                
+                try {
+                  const response = await fetch('http://localhost:8000/api/v1/process/upload_file', {
+                    method: 'POST',
+                    body: formData,
+                  });
+                  
+                  if (!response.ok) {
+                    throw new Error('File upload failed');
+                  }
+                  
+                  const data = await response.json();
+                  setText(data.content);
+                  message.success('File processed successfully');
+                } catch (error) {
+                  console.error('Error uploading file:', error);
+                  message.error('Failed to process file');
+                } finally {
+                  hide();
                 }
-              };
-              reader.readAsText(file);
+              }
               return false;
             }}
             showUploadList={false}
-            accept=".txt,.md,.json,.csv"
+            accept=".txt,.md,.json,.csv,.pdf,.docx"
           >
             <Button icon={<UploadOutlined />} size="small">Load File</Button>
           </Upload>

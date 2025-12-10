@@ -1,10 +1,15 @@
 import os
 import base64
+import logging
 from typing import Optional
 from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class LLMClient:
     def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None, model_name: Optional[str] = None):
@@ -22,6 +27,7 @@ class LLMClient:
         Get text completion from the LLM.
         """
         try:
+            logger.info(f"Sending request to LLM: {self.model_name}")
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=[
@@ -29,9 +35,10 @@ class LLMClient:
                     {"role": "user", "content": prompt}
                 ]
             )
+            logger.info("Received response from LLM")
             return response.choices[0].message.content
         except Exception as e:
-            print(f"Error getting completion: {e}")
+            logger.error(f"Error getting completion: {e}")
             raise e
 
 class VLMClient:
@@ -52,6 +59,7 @@ class VLMClient:
         try:
             base64_image = base64.b64encode(image_bytes).decode('utf-8')
             
+            logger.info(f"Sending request to VLM: {self.model_name}")
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=[
@@ -69,9 +77,10 @@ class VLMClient:
                     }
                 ]
             )
+            logger.info("Received response from VLM")
             return response.choices[0].message.content
         except Exception as e:
-            print(f"Error getting image caption: {e}")
+            logger.error(f"Error getting image caption: {e}")
             raise e
 
 if __name__ == "__main__":

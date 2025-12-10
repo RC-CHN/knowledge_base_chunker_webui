@@ -1,9 +1,14 @@
 import os
+import logging
 from typing import List, Optional
 from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class EmbeddingClient:
     def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None, model_name: Optional[str] = None):
@@ -26,13 +31,15 @@ class EmbeddingClient:
         # OpenAI API handles batching, but for very large lists we might want to chunk it manually.
         # For now, we assume the input list size is reasonable.
         try:
+            logger.info(f"Getting embeddings for {len(texts)} texts using {self.model_name}")
             response = self.client.embeddings.create(
                 input=texts,
                 model=self.model_name
             )
+            logger.info("Successfully retrieved embeddings")
             return [data.embedding for data in response.data]
         except Exception as e:
-            print(f"Error getting embeddings: {e}")
+            logger.error(f"Error getting embeddings: {e}")
             raise e
 
 if __name__ == "__main__":

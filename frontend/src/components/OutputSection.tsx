@@ -32,7 +32,7 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
     setProcessingChunkIds(prev => new Set(prev).add(index));
 
     try {
-      const response = await axios.post('http://localhost:8000/api/v1/process/chunk', {
+      const response = await axios.post('/api/v1/process/chunk', {
         chunk: chunk,
         action: action
       });
