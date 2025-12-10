@@ -11,6 +11,7 @@ import tiktoken
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class Orchestrator:
     def __init__(self):
         # Initialize clients lazily or here.
@@ -28,9 +29,11 @@ class Orchestrator:
         except Exception as e:
             logger.warning(f"Could not initialize LLMClient: {e}")
             self.processing_service = None
-            
+
         try:
-            self.tokenizer = tiktoken.get_encoding("cl100k_base") # Default for GPT-4/3.5
+            self.tokenizer = tiktoken.get_encoding(
+                "cl100k_base"
+            )  # Default for GPT-4/3.5
         except Exception as e:
             logger.warning(f"Could not initialize tokenizer: {e}")
             self.tokenizer = None
@@ -43,42 +46,58 @@ class Orchestrator:
     async def process(self, request: ProcessRequest) -> ProcessResponse:
         logger.info(f"Starting processing request. Text length: {len(request.text)}")
         chunks: List[Chunk] = []
-        
+
         # 1. Chunking Phase
         method = request.chunking_options.method
         chunk_size = request.chunking_options.chunk_size
         chunk_overlap = request.chunking_options.chunk_overlap
-        
-        logger.info(f"Chunking method: {method}, Size: {chunk_size}, Overlap: {chunk_overlap}")
-        
+
+        logger.info(
+            f"Chunking method: {method}, Size: {chunk_size}, Overlap: {chunk_overlap}"
+        )
+
         if method == "fixed_size":
-            chunks = RuleBasedChunker.chunk_by_fixed_size(request.text, chunk_size, chunk_overlap)
+            chunks = RuleBasedChunker.chunk_by_fixed_size(
+                request.text, chunk_size, chunk_overlap
+            )
         elif method == "semantic":
             if self.semantic_chunker:
                 threshold = request.chunking_options.semantic_threshold or 0.5
-                chunks = self.semantic_chunker.chunk_by_semantics(request.text, threshold=threshold)
+                chunks = self.semantic_chunker.chunk_by_semantics(
+                    request.text, threshold=threshold
+                )
             else:
                 # Fallback
-                logger.warning("Semantic chunker not available, falling back to fixed size.")
-                chunks = RuleBasedChunker.chunk_by_fixed_size(request.text, chunk_size, chunk_overlap)
+                logger.warning(
+                    "Semantic chunker not available, falling back to fixed size."
+                )
+                chunks = RuleBasedChunker.chunk_by_fixed_size(
+                    request.text, chunk_size, chunk_overlap
+                )
         elif method == "recursive":
-             separators = request.chunking_options.separators
-             chunks = RuleBasedChunker.chunk_recursively(request.text, chunk_size, chunk_overlap, separators=separators)
+            separators = request.chunking_options.separators
+            chunks = RuleBasedChunker.chunk_recursively(
+                request.text, chunk_size, chunk_overlap, separators=separators
+            )
         else:
             # Default fallback
-            chunks = RuleBasedChunker.chunk_by_fixed_size(request.text, chunk_size, chunk_overlap)
-            
+            chunks = RuleBasedChunker.chunk_by_fixed_size(
+                request.text, chunk_size, chunk_overlap
+            )
+
         logger.info(f"Generated {len(chunks)} chunks")
 
         # 2. Processing Phase
         if self.processing_service:
             clean = request.processing_options.clean_text
             summarize = request.processing_options.generate_summary
-            
+
             if clean or summarize:
                 logger.info(f"Processing chunks: Clean={clean}, Summarize={summarize}")
-                chunks = await self.processing_service.process_chunks(chunks, clean=clean, summarize=summarize)
-        
+                chunks = await self.processing_service.process_chunks(
+                    chunks, clean=clean, summarize=summarize
+                )
+
         # 3. Token Counting
         for chunk in chunks:
             chunk.token_count = self._count_tokens(chunk.content)
@@ -88,17 +107,17 @@ class Orchestrator:
 
     async def process_single_chunk(self, chunk: Chunk, action: str) -> Chunk:
         if not self.processing_service:
-             raise Exception("Processing service not available")
-        
+            raise Exception("Processing service not available")
+
         if action == "clean":
             chunk = await self.processing_service.clean_chunk(chunk)
         elif action == "summarize":
             chunk = await self.processing_service.generate_summary(chunk)
         else:
             raise ValueError(f"Invalid action: {action}")
-            
+
         # Recount tokens if content changed (cleaning)
         if action == "clean":
             chunk.token_count = self._count_tokens(chunk.content)
-            
+
         return chunk

@@ -5,6 +5,7 @@ from app.services.processing_service import ProcessingService
 from app.schemas.process import Chunk
 from app.core.llm_client import LLMClient
 
+
 class TestProcessingService(unittest.TestCase):
     def setUp(self):
         self.mock_llm_client = MagicMock(spec=LLMClient)
@@ -27,23 +28,28 @@ class TestProcessingService(unittest.TestCase):
 
     def test_clean_chunk_async(self):
         chunk = Chunk(content="Dirty text", original_index=0)
-        self.mock_llm_client.get_completion.return_value = "<cleaned_text>Cleaned text</cleaned_text>"
-        
+        self.mock_llm_client.get_completion.return_value = (
+            "<cleaned_text>Cleaned text</cleaned_text>"
+        )
+
         # Run async method in sync context
         cleaned_chunk = asyncio.run(self.processing_service.clean_chunk(chunk))
-        
+
         self.assertEqual(cleaned_chunk.content, "Cleaned text")
         self.mock_llm_client.get_completion.assert_called_once()
 
     def test_generate_summary_async(self):
         chunk = Chunk(content="Some content", original_index=0)
-        self.mock_llm_client.get_completion.return_value = "<summary>Summary text</summary>"
-        
+        self.mock_llm_client.get_completion.return_value = (
+            "<summary>Summary text</summary>"
+        )
+
         # Run async method in sync context
         summarized_chunk = asyncio.run(self.processing_service.generate_summary(chunk))
-        
+
         self.assertEqual(summarized_chunk.summary, "Summary text")
         self.mock_llm_client.get_completion.assert_called_once()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

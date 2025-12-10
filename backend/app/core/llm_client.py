@@ -11,8 +11,14 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class LLMClient:
-    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None, model_name: Optional[str] = None):
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        model_name: Optional[str] = None,
+    ):
         self.api_key = api_key or os.getenv("LLM_API_KEY")
         self.base_url = base_url or os.getenv("LLM_BASE_URL")
         self.model_name = model_name or os.getenv("LLM_MODEL_NAME", "gpt-4o")
@@ -22,7 +28,9 @@ class LLMClient:
 
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
 
-    def get_completion(self, prompt: str, system_prompt: str = "You are a helpful assistant.") -> str:
+    def get_completion(
+        self, prompt: str, system_prompt: str = "You are a helpful assistant."
+    ) -> str:
         """
         Get text completion from the LLM.
         """
@@ -32,8 +40,8 @@ class LLMClient:
                 model=self.model_name,
                 messages=[
                     {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt}
-                ]
+                    {"role": "user", "content": prompt},
+                ],
             )
             logger.info("Received response from LLM")
             return response.choices[0].message.content
@@ -41,8 +49,14 @@ class LLMClient:
             logger.error(f"Error getting completion: {e}")
             raise e
 
+
 class VLMClient:
-    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None, model_name: Optional[str] = None):
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        model_name: Optional[str] = None,
+    ):
         self.api_key = api_key or os.getenv("VLM_API_KEY")
         self.base_url = base_url or os.getenv("VLM_BASE_URL")
         self.model_name = model_name or os.getenv("VLM_MODEL_NAME", "gpt-4o")
@@ -52,13 +66,15 @@ class VLMClient:
 
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
 
-    def get_image_caption(self, image_bytes: bytes, prompt: str = "Describe this image in detail.") -> str:
+    def get_image_caption(
+        self, image_bytes: bytes, prompt: str = "Describe this image in detail."
+    ) -> str:
         """
         Get caption/description for an image.
         """
         try:
-            base64_image = base64.b64encode(image_bytes).decode('utf-8')
-            
+            base64_image = base64.b64encode(image_bytes).decode("utf-8")
+
             logger.info(f"Sending request to VLM: {self.model_name}")
             response = self.client.chat.completions.create(
                 model=self.model_name,
@@ -71,17 +87,18 @@ class VLMClient:
                                 "type": "image_url",
                                 "image_url": {
                                     "url": f"data:image/jpeg;base64,{base64_image}"
-                                }
-                            }
-                        ]
+                                },
+                            },
+                        ],
                     }
-                ]
+                ],
             )
             logger.info("Received response from VLM")
             return response.choices[0].message.content
         except Exception as e:
             logger.error(f"Error getting image caption: {e}")
             raise e
+
 
 if __name__ == "__main__":
     # Simple test

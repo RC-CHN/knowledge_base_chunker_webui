@@ -1,6 +1,11 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from app.schemas.process import ProcessRequest, ProcessResponse, Chunk, ChunkActionRequest
+from app.schemas.process import (
+    ProcessRequest,
+    ProcessResponse,
+    Chunk,
+    ChunkActionRequest,
+)
 from app.services.orchestrator import Orchestrator
 from app.services.file_processing_service import FileProcessingService
 
@@ -8,16 +13,18 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+
 def get_orchestrator():
     return Orchestrator()
+
 
 def get_file_processing_service():
     return FileProcessingService()
 
+
 @router.post("/", response_model=ProcessResponse)
 async def process_text(
-    request: ProcessRequest,
-    orchestrator: Orchestrator = Depends(get_orchestrator)
+    request: ProcessRequest, orchestrator: Orchestrator = Depends(get_orchestrator)
 ):
     """
     Process text: chunk, clean, and summarize.
@@ -27,10 +34,10 @@ async def process_text(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/chunk", response_model=Chunk)
 async def process_chunk(
-    request: ChunkActionRequest,
-    orchestrator: Orchestrator = Depends(get_orchestrator)
+    request: ChunkActionRequest, orchestrator: Orchestrator = Depends(get_orchestrator)
 ):
     """
     Process a single chunk (clean or summarize).
@@ -41,10 +48,11 @@ async def process_chunk(
         logger.error(f"Error processing chunk: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/upload_file")
 async def upload_file(
     file: UploadFile = File(...),
-    file_service: FileProcessingService = Depends(get_file_processing_service)
+    file_service: FileProcessingService = Depends(get_file_processing_service),
 ):
     """
     Upload and process a file (PDF, DOCX, TXT, MD, CSV, JSON).
