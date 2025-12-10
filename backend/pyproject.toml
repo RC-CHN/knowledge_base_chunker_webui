@@ -10,5 +10,11 @@ dependencies = [
     "openai>=2.9.0",
     "pydantic>=2.12.5",
     "python-dotenv>=1.2.1",
+    "tiktoken>=0.12.0",
     "uvicorn>=0.38.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
 ]

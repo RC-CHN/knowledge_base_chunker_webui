@@ -85,18 +85,22 @@ class RuleBasedChunker:
         return chunks
 
     @staticmethod
-    def chunk_recursively(text: str, chunk_size: int, chunk_overlap: int) -> List[Chunk]:
+    def chunk_recursively(text: str, chunk_size: int, chunk_overlap: int, separators: List[str] = None) -> List[Chunk]:
         """
-        Recursive character text splitter logic (simplified).
-        Prioritizes splitting by paragraphs, then sentences, then words.
+        Recursive character text splitter logic.
+        Prioritizes splitting by provided separators.
         """
-        # For MVP, we can implement a simpler version or use a library like langchain's splitter logic
-        # Here is a simple implementation that splits by newlines first
-        
-        separators = ["\n\n", "\n", " ", ""]
+        if separators is None:
+            separators = ["\n\n", "\n", " ", ""]
+            
+        # Ensure empty string is at the end as a fallback
+        if "" not in separators:
+            separators.append("")
+            
+        final_chunks = []
         
         def _split_text(text: str, separators: List[str]) -> List[str]:
-            final_chunks = []
+            final_splits = []
             separator = separators[-1]
             new_separators = []
             
@@ -113,6 +117,8 @@ class RuleBasedChunker:
             
             good_splits = []
             for split in splits:
+                if not split:
+                    continue
                 if len(split) < chunk_size:
                     good_splits.append(split)
                 else:
@@ -123,6 +129,29 @@ class RuleBasedChunker:
                         
             return good_splits
 
-        # This is a placeholder for a more robust recursive splitter
-        # For now, let's fallback to fixed size for simplicity in this step
-        return RuleBasedChunker.chunk_by_fixed_size(text, chunk_size, chunk_overlap)
+        # Use the recursive splitting logic
+        # Note: This is a simplified implementation. A full implementation would need to handle merging small chunks back together.
+        # For now, we will use the fixed size chunker as a fallback if the recursive split fails to produce chunks of the desired size,
+        # or if we want to ensure strict size limits.
+        
+        # However, to respect the user's request for recursive splitting with separators:
+        # We will implement a basic recursive split and then group them to fit chunk_size
+        
+        splits = _split_text(text, separators)
+        
+        current_chunk = ""
+        current_start_index = 0
+        
+        for split in splits:
+            if len(current_chunk) + len(split) + 1 <= chunk_size:
+                current_chunk += (split + " ") # Adding space as a generic joiner, ideally should use the separator that was used
+            else:
+                if current_chunk:
+                    final_chunks.append(Chunk(content=current_chunk.strip(), original_index=current_start_index))
+                    current_start_index += len(current_chunk)
+                current_chunk = split + " "
+                
+        if current_chunk:
+            final_chunks.append(Chunk(content=current_chunk.strip(), original_index=current_start_index))
+            
+        return final_chunks

@@ -4,10 +4,11 @@ from app.services.chunking_service import RuleBasedChunker, SemanticChunker
 from app.services.processing_service import ProcessingService
 from app.core.embedding_client import EmbeddingClient
 from app.core.llm_client import MultimodalLLMClient
+import tiktoken
 
 class Orchestrator:
     def __init__(self):
-        # Initialize clients lazily or here. 
+        # Initialize clients lazily or here.
         # For simplicity, we initialize them here, assuming env vars are set.
         try:
             self.embedding_client = EmbeddingClient()
@@ -22,6 +23,17 @@ class Orchestrator:
         except Exception as e:
             print(f"Warning: Could not initialize LLMClient: {e}")
             self.processing_service = None
+            
+        try:
+            self.tokenizer = tiktoken.get_encoding("cl100k_base") # Default for GPT-4/3.5
+        except Exception as e:
+            print(f"Warning: Could not initialize tokenizer: {e}")
+            self.tokenizer = None
+
+    def _count_tokens(self, text: str) -> int:
+        if self.tokenizer:
+            return len(self.tokenizer.encode(text))
+        return 0
 
     def process(self, request: ProcessRequest) -> ProcessResponse:
         chunks: List[Chunk] = []
@@ -35,14 +47,15 @@ class Orchestrator:
             chunks = RuleBasedChunker.chunk_by_fixed_size(request.text, chunk_size, chunk_overlap)
         elif method == "semantic":
             if self.semantic_chunker:
-                # Note: Semantic chunker might need different params, using defaults/heuristics for now
-                chunks = self.semantic_chunker.chunk_by_semantics(request.text)
+                threshold = request.chunking_options.semantic_threshold or 0.5
+                chunks = self.semantic_chunker.chunk_by_semantics(request.text, threshold=threshold)
             else:
                 # Fallback
                 print("Semantic chunker not available, falling back to fixed size.")
                 chunks = RuleBasedChunker.chunk_by_fixed_size(request.text, chunk_size, chunk_overlap)
         elif method == "recursive":
-             chunks = RuleBasedChunker.chunk_recursively(request.text, chunk_size, chunk_overlap)
+             separators = request.chunking_options.separators
+             chunks = RuleBasedChunker.chunk_recursively(request.text, chunk_size, chunk_overlap, separators=separators)
         else:
             # Default fallback
             chunks = RuleBasedChunker.chunk_by_fixed_size(request.text, chunk_size, chunk_overlap)
@@ -55,4 +68,8 @@ class Orchestrator:
             if clean or summarize:
                 chunks = self.processing_service.process_chunks(chunks, clean=clean, summarize=summarize)
         
+        # 3. Token Counting
+        for chunk in chunks:
+            chunk.token_count = self._count_tokens(chunk.content)
+
         return ProcessResponse(chunks=chunks, total_chunks=len(chunks))
