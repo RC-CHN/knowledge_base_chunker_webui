@@ -3,7 +3,7 @@ from app.schemas.process import ProcessRequest, ProcessResponse, Chunk
 from app.services.chunking_service import RuleBasedChunker, SemanticChunker
 from app.services.processing_service import ProcessingService
 from app.core.embedding_client import EmbeddingClient
-from app.core.llm_client import MultimodalLLMClient
+from app.core.llm_client import LLMClient
 import tiktoken
 
 class Orchestrator:
@@ -18,7 +18,7 @@ class Orchestrator:
             self.semantic_chunker = None
 
         try:
-            self.llm_client = MultimodalLLMClient()
+            self.llm_client = LLMClient()
             self.processing_service = ProcessingService(self.llm_client)
         except Exception as e:
             print(f"Warning: Could not initialize LLMClient: {e}")

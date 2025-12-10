@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-class MultimodalLLMClient:
+class LLMClient:
     def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None, model_name: Optional[str] = None):
         self.api_key = api_key or os.getenv("LLM_API_KEY")
         self.base_url = base_url or os.getenv("LLM_BASE_URL")
@@ -33,6 +33,17 @@ class MultimodalLLMClient:
         except Exception as e:
             print(f"Error getting completion: {e}")
             raise e
+
+class VLMClient:
+    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None, model_name: Optional[str] = None):
+        self.api_key = api_key or os.getenv("VLM_API_KEY")
+        self.base_url = base_url or os.getenv("VLM_BASE_URL")
+        self.model_name = model_name or os.getenv("VLM_MODEL_NAME", "gpt-4o")
+
+        if not self.api_key:
+            raise ValueError("VLM_API_KEY is not set and not provided.")
+
+        self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
 
     def get_image_caption(self, image_bytes: bytes, prompt: str = "Describe this image in detail.") -> str:
         """
@@ -66,7 +77,7 @@ class MultimodalLLMClient:
 if __name__ == "__main__":
     # Simple test
     try:
-        client = MultimodalLLMClient()
+        client = LLMClient()
         print("Testing text completion...")
         response = client.get_completion("Say hello!")
         print(f"Response: {response}")
