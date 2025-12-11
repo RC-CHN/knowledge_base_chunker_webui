@@ -32,7 +32,7 @@ const App: React.FC = () => {
   const [chunkSize, setChunkSize] = useState(500);
   const [chunkOverlap, setChunkOverlap] = useState(50);
   const [semanticThreshold, setSemanticThreshold] = useState(0.5);
-  const [separators, setSeparators] = useState('\\n\\n,\\n, ,');
+  const [separators, setSeparators] = useState<string[]>(['\\n\\n', '\\n', ' ', '']);
   const [cleanText, setCleanText] = useState(false);
   const [generateSummary, setGenerateSummary] = useState(false);
 
@@ -51,7 +51,7 @@ const App: React.FC = () => {
           chunk_size: chunkSize,
           chunk_overlap: chunkOverlap,
           semantic_threshold: semanticThreshold,
-          separators: separators.split(',').map(s => s.replace(/\\n/g, '\n')),
+          separators: separators.map(s => s.replace(/\\n/g, '\n')),
         },
         processing_options: {
           clean_text: cleanText,

@@ -41,8 +41,9 @@
     },
     "separators": {
       "label": "Separators",
-      "tooltip": "Characters to split on (comma separated, e.g. \\n\\n,\\n,., )",
-      "placeholder": "Select or type separators",
+      "tooltip": "Characters to split on (supports custom input, press Enter to add)",
+      "placeholder": "Select or type custom separators...",
+      "hint": "💡 Tip: Type characters and press Enter to add custom separators",
       "options": {
         "doubleNewline": "Double Newline (\\n\\n)",
         "newline": "Newline (\\n)",

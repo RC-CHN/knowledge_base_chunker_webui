@@ -30,8 +30,8 @@ interface ConfigurationPanelProps {
   setChunkOverlap: (value: number) => void;
   semanticThreshold: number;
   setSemanticThreshold: (value: number) => void;
-  separators: string;
-  setSeparators: (value: string) => void;
+  separators: string[];
+  setSeparators: (value: string[]) => void;
   cleanText: boolean;
   setCleanText: (value: boolean) => void;
   generateSummary: boolean;
@@ -185,12 +185,16 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
                       <QuestionCircleOutlined style={{ color: '#bfbfbf' }} />
                     </Tooltip>
                   </Space>
+                  <div style={{ marginBottom: 4 }}>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>{t('config.separators.hint')}</Text>
+                  </div>
                   <Select
                     mode="tags"
                     style={{ width: '100%' }}
                     placeholder={t('config.separators.placeholder')}
-                    value={separators ? separators.split(',') : []}
-                    onChange={(values) => setSeparators(values.join(','))}
+                    value={separators}
+                    onChange={(values) => setSeparators(values)}
+                    tokenSeparators={[',']}
                     options={[
                       { value: '\\n\\n', label: t('config.separators.options.doubleNewline') },
                       { value: '\\n', label: t('config.separators.options.newline') },
