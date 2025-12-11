@@ -1,6 +1,7 @@
 services:
   backend:
     build: ./backend
+    image: rc0x01/knowledge_base_chunker_backend:latest
     container_name: kb_chunker_backend
     ports:
       - "8000:8000"
@@ -10,6 +11,7 @@ services:
 
   frontend:
     build: ./frontend
+    image: rc0x01/knowledge_base_chunker_frontend:latest
     container_name: kb_chunker_frontend
     ports:
       - "3000:80"
