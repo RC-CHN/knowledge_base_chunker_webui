@@ -1,0 +1,162 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kb-chunker
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backend-secrets
+  namespace: kb-chunker
+type: Opaque
+stringData:
+  # 请替换为实际的 API Key
+  EMBEDDING_API_KEY: "your_embedding_api_key"
+  LLM_API_KEY: "your_llm_api_key"
+  VLM_API_KEY: "your_vlm_api_key"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: kb-chunker
+data:
+  EMBEDDING_BASE_URL: "https://api.openai.com/v1"
+  EMBEDDING_MODEL_NAME: "text-embedding-3-small"
+  LLM_BASE_URL: "https://api.openai.com/v1"
+  LLM_MODEL_NAME: "gpt-4o"
+  LLM_CONCURRENCY_LIMIT: "5"
+  VLM_BASE_URL: "https://api.openai.com/v1"
+  VLM_MODEL_NAME: "gpt-4o"
+  VLM_CONCURRENCY_LIMIT: "5"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: kb-chunker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: rc0x01/knowledge_base_chunker_backend:latest
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: backend-config
+        - secretRef:
+            name: backend-secrets
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: kb-chunker
+spec:
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-nginx-config
+  namespace: kb-chunker
+data:
+  default.conf: |
+    server {
+        listen 80;
+        
+        location / {
+            root /usr/share/nginx/html;
+            index index.html index.htm;
+            try_files $uri $uri/ /index.html;
+        }
+
+        location /api {
+            # 在 K8s 内部，使用 Service 名称 'backend' 进行访问
+            # 这里的 'backend' 对应上面定义的 Service 名称
+            proxy_pass http://backend:8000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: kb-chunker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: rc0x01/knowledge_base_chunker_frontend:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: frontend-nginx-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: kb-chunker
+spec:
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
