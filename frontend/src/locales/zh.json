@@ -1,0 +1,106 @@
+{
+  "app": {
+    "title": "RAG 切块工具",
+    "warnings": {
+      "inputRequired": "请先输入一些文本。"
+    },
+    "success": {
+      "processed": "成功处理了 {{count}} 个切块。"
+    },
+    "errors": {
+      "processFailed": "处理文本失败。请检查后端连接。"
+    }
+  },
+  "config": {
+    "title": "配置",
+    "strategy": {
+      "label": "策略",
+      "options": {
+        "fixed_size": "固定大小",
+        "semantic": "语义 (Embedding)",
+        "recursive": "递归"
+      },
+      "description": {
+        "fixed_size": "将文本分割成固定大小的块，带有重叠。",
+        "semantic": "使用嵌入根据语义含义分割文本。",
+        "recursive": "使用不同的分隔符递归地分割文本。"
+      }
+    },
+    "chunkingParams": "切块参数",
+    "chunkSize": {
+      "label": "块大小",
+      "tooltip": "每个块的最大字符数"
+    },
+    "overlap": {
+      "label": "重叠",
+      "tooltip": "块之间重叠的字符数"
+    },
+    "threshold": {
+      "label": "阈值",
+      "tooltip": "分割块的相似度阈值 (0.0 - 1.0)"
+    },
+    "separators": {
+      "label": "分隔符",
+      "tooltip": "用于分割的字符 (逗号分隔, 例如 \\n\\n,\\n,., )",
+      "placeholder": "选择或输入分隔符",
+      "options": {
+        "doubleNewline": "双换行 (\\n\\n)",
+        "newline": "换行 (\\n)",
+        "period": "句号 (.)",
+        "space": "空格 ( )",
+        "empty": "空字符串"
+      }
+    },
+    "enhancement": "增强",
+    "cleanText": "清理文本",
+    "summary": "摘要",
+    "runProcessor": "运行处理器"
+  },
+  "input": {
+    "title": "源文档",
+    "loadFile": "加载文件",
+    "placeholder": "在此粘贴您的文本或加载文件...",
+    "characters": "字符",
+    "success": {
+      "fileLoaded": "文件加载成功",
+      "fileProcessed": "文件处理成功"
+    },
+    "loading": "正在使用 VLM 处理文件...",
+    "errors": {
+      "uploadFailed": "文件上传失败",
+      "processFailed": "处理文件失败"
+    }
+  },
+  "output": {
+    "title": "已处理切块",
+    "selected": "已选",
+    "chunks": "切块",
+    "export": "导出",
+    "exportOptions": {
+      "json": "导出为 JSON",
+      "txt": "导出为 文本",
+      "md": "导出为 Markdown"
+    },
+    "processing": "处理中...",
+    "noChunks": "尚未生成切块",
+    "chunk": {
+      "offset": "偏移量",
+      "aiSummary": "AI 摘要",
+      "chars": "字符",
+      "tokens": "tokens",
+      "save": "保存",
+      "clean": "清理文本",
+      "summarize": "摘要",
+      "edit": "编辑",
+      "copy": "复制"
+    },
+    "messages": {
+      "cleaned": "切块清理成功",
+      "summarized": "切块摘要成功",
+      "updated": "切块已更新",
+      "copied": "已复制！",
+      "failedToClean": "清理切块失败",
+      "failedToSummarize": "摘要切块失败"
+    }
+  }
+}

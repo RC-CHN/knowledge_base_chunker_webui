@@ -1,0 +1,106 @@
+{
+  "app": {
+    "title": "RAG Chunker",
+    "warnings": {
+      "inputRequired": "Please input some text first."
+    },
+    "success": {
+      "processed": "Successfully processed {{count}} chunks."
+    },
+    "errors": {
+      "processFailed": "Failed to process text. Please check backend connection."
+    }
+  },
+  "config": {
+    "title": "Configuration",
+    "strategy": {
+      "label": "Strategy",
+      "options": {
+        "fixed_size": "Fixed Size",
+        "semantic": "Semantic (Embedding)",
+        "recursive": "Recursive"
+      },
+      "description": {
+        "fixed_size": "Splits text into fixed-size chunks with overlap.",
+        "semantic": "Uses embeddings to split text based on semantic meaning.",
+        "recursive": "Recursively splits text using different separators."
+      }
+    },
+    "chunkingParams": "Chunking Parameters",
+    "chunkSize": {
+      "label": "Chunk Size",
+      "tooltip": "The maximum number of characters in each chunk"
+    },
+    "overlap": {
+      "label": "Overlap",
+      "tooltip": "The number of characters to overlap between chunks"
+    },
+    "threshold": {
+      "label": "Threshold",
+      "tooltip": "Similarity threshold for splitting chunks (0.0 - 1.0)"
+    },
+    "separators": {
+      "label": "Separators",
+      "tooltip": "Characters to split on (comma separated, e.g. \\n\\n,\\n,., )",
+      "placeholder": "Select or type separators",
+      "options": {
+        "doubleNewline": "Double Newline (\\n\\n)",
+        "newline": "Newline (\\n)",
+        "period": "Period (.)",
+        "space": "Space ( )",
+        "empty": "Empty String"
+      }
+    },
+    "enhancement": "Enhancement",
+    "cleanText": "Clean Text",
+    "summary": "Summary",
+    "runProcessor": "Run Processor"
+  },
+  "input": {
+    "title": "Source Document",
+    "loadFile": "Load File",
+    "placeholder": "Paste your text here or load a file...",
+    "characters": "characters",
+    "success": {
+      "fileLoaded": "File loaded successfully",
+      "fileProcessed": "File processed successfully"
+    },
+    "loading": "Processing file with VLM...",
+    "errors": {
+      "uploadFailed": "File upload failed",
+      "processFailed": "Failed to process file"
+    }
+  },
+  "output": {
+    "title": "Processed Chunks",
+    "selected": "Selected",
+    "chunks": "Chunks",
+    "export": "Export",
+    "exportOptions": {
+      "json": "Export as JSON",
+      "txt": "Export as Text",
+      "md": "Export as Markdown"
+    },
+    "processing": "Processing...",
+    "noChunks": "No chunks generated yet",
+    "chunk": {
+      "offset": "Offset",
+      "aiSummary": "AI Summary",
+      "chars": "chars",
+      "tokens": "tokens",
+      "save": "Save",
+      "clean": "Clean Text",
+      "summarize": "Summarize",
+      "edit": "Edit",
+      "copy": "Copy"
+    },
+    "messages": {
+      "cleaned": "Chunk cleaned successfully",
+      "summarized": "Chunk summarized successfully",
+      "updated": "Chunk updated",
+      "copied": "Copied!",
+      "failedToClean": "Failed to clean chunk",
+      "failedToSummarize": "Failed to summarize chunk"
+    }
+  }
+}

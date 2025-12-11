@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { 
-  Layout, 
-  Typography, 
-  message, 
+import {
+  Layout,
+  Typography,
+  message,
   ConfigProvider,
-  theme
+  theme,
+  Select,
+  Space
 } from 'antd';
-import { RocketOutlined } from '@ant-design/icons';
+import { RocketOutlined, GlobalOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import type { ProcessRequest, ProcessResponse, Chunk } from './types';
 import ConfigurationPanel from './components/ConfigurationPanel';
 import InputSection from './components/InputSection';
@@ -18,6 +21,7 @@ const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
 
 const App: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [chunks, setChunks] = useState<Chunk[]>([]);
   const [totalChunks, setTotalChunks] = useState(0);
@@ -34,7 +38,7 @@ const App: React.FC = () => {
 
   const handleProcess = async () => {
     if (!text.trim()) {
-      message.warning('Please input some text first.');
+      message.warning(t('app.warnings.inputRequired'));
       return;
     }
 
@@ -58,10 +62,10 @@ const App: React.FC = () => {
       const response = await axios.post<ProcessResponse>('/api/v1/process/', request);
       setChunks(response.data.chunks);
       setTotalChunks(response.data.total_chunks);
-      message.success(`Successfully processed ${response.data.total_chunks} chunks.`);
+      message.success(t('app.success.processed', { count: response.data.total_chunks }));
     } catch (error) {
       console.error(error);
-      message.error('Failed to process text. Please check backend connection.');
+      message.error(t('app.errors.processFailed'));
     } finally {
       setLoading(false);
     }
@@ -87,10 +91,25 @@ const App: React.FC = () => {
           height: '64px',
           position: 'fixed',
           width: '100%',
-          zIndex: 100
+          zIndex: 100,
+          justifyContent: 'space-between'
         }}>
-          <RocketOutlined style={{ fontSize: '24px', color: '#1677ff', marginRight: '12px' }} />
-          <Title level={4} style={{ color: 'white', margin: 0 }}>RAG Chunker</Title>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <RocketOutlined style={{ fontSize: '24px', color: '#1677ff', marginRight: '12px' }} />
+            <Title level={4} style={{ color: 'white', margin: 0 }}>{t('app.title')}</Title>
+          </div>
+          <Space>
+            <GlobalOutlined style={{ color: 'white' }} />
+            <Select
+              defaultValue={i18n.language}
+              style={{ width: 100 }}
+              onChange={(value) => i18n.changeLanguage(value)}
+              options={[
+                { value: 'en', label: 'English' },
+                { value: 'zh', label: '中文' },
+              ]}
+            />
+          </Space>
         </Header>
 
         <Layout style={{ marginTop: 64 }}>

@@ -17,6 +17,7 @@ import {
   ThunderboltOutlined,
   QuestionCircleOutlined
 } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 
 const { Text } = Typography;
 
@@ -57,47 +58,49 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
   handleProcess,
   loading
 }) => {
+  const { t } = useTranslation();
+
   return (
-    <Card 
+    <Card
       title={
         <Space>
           <SettingOutlined />
-          <span>Configuration</span>
+          <span>{t('config.title')}</span>
         </Space>
       }
       bordered={false}
       style={{ height: '100%', overflowY: 'auto' }}
     >
       <div style={{ marginBottom: '24px' }}>
-        <Text strong style={{ display: 'block', marginBottom: 8 }}>Strategy</Text>
-        <Select 
-          value={method} 
-          onChange={setMethod} 
+        <Text strong style={{ display: 'block', marginBottom: 8 }}>{t('config.strategy.label')}</Text>
+        <Select
+          value={method}
+          onChange={setMethod}
           style={{ width: '100%' }}
           options={[
-            { value: 'fixed_size', label: 'Fixed Size' },
-            { value: 'semantic', label: 'Semantic (Embedding)' },
-            { value: 'recursive', label: 'Recursive' },
+            { value: 'fixed_size', label: t('config.strategy.options.fixed_size') },
+            { value: 'semantic', label: t('config.strategy.options.semantic') },
+            { value: 'recursive', label: t('config.strategy.options.recursive') },
           ]}
         />
         <div style={{ marginTop: 8 }}>
           <Text type="secondary" style={{ fontSize: '12px' }}>
-            {method === 'fixed_size' && 'Splits text into fixed-size chunks with overlap.'}
-            {method === 'semantic' && 'Uses embeddings to split text based on semantic meaning.'}
-            {method === 'recursive' && 'Recursively splits text using different separators.'}
+            {method === 'fixed_size' && t('config.strategy.description.fixed_size')}
+            {method === 'semantic' && t('config.strategy.description.semantic')}
+            {method === 'recursive' && t('config.strategy.description.recursive')}
           </Text>
         </div>
       </div>
 
-      <Divider plain>Chunking Parameters</Divider>
+      <Divider plain>{t('config.chunkingParams')}</Divider>
       <div style={{ marginBottom: '16px' }}>
         <Space direction="vertical" style={{ width: '100%' }}>
           {method !== 'semantic' && (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Space>
-                  <Text>Chunk Size</Text>
-                  <Tooltip title="The maximum number of characters in each chunk">
+                  <Text>{t('config.chunkSize.label')}</Text>
+                  <Tooltip title={t('config.chunkSize.tooltip')}>
                     <QuestionCircleOutlined style={{ color: '#bfbfbf' }} />
                   </Tooltip>
                 </Space>
@@ -111,8 +114,8 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
               
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Space>
-                  <Text>Overlap</Text>
-                  <Tooltip title="The number of characters to overlap between chunks">
+                  <Text>{t('config.overlap.label')}</Text>
+                  <Tooltip title={t('config.overlap.tooltip')}>
                     <QuestionCircleOutlined style={{ color: '#bfbfbf' }} />
                   </Tooltip>
                 </Space>
@@ -128,8 +131,8 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
           {method === 'semantic' && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Space>
-                <Text>Threshold</Text>
-                <Tooltip title="Similarity threshold for splitting chunks (0.0 - 1.0)">
+                <Text>{t('config.threshold.label')}</Text>
+                <Tooltip title={t('config.threshold.tooltip')}>
                   <QuestionCircleOutlined style={{ color: '#bfbfbf' }} />
                 </Tooltip>
               </Space>
@@ -147,8 +150,8 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Space>
-                  <Text>Chunk Size</Text>
-                  <Tooltip title="The maximum number of characters in each chunk">
+                  <Text>{t('config.chunkSize.label')}</Text>
+                  <Tooltip title={t('config.chunkSize.tooltip')}>
                     <QuestionCircleOutlined style={{ color: '#bfbfbf' }} />
                   </Tooltip>
                 </Space>
@@ -162,8 +165,8 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
               
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Space>
-                  <Text>Overlap</Text>
-                  <Tooltip title="The number of characters to overlap between chunks">
+                  <Text>{t('config.overlap.label')}</Text>
+                  <Tooltip title={t('config.overlap.tooltip')}>
                     <QuestionCircleOutlined style={{ color: '#bfbfbf' }} />
                   </Tooltip>
                 </Space>
@@ -177,23 +180,23 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
               <div style={{ marginTop: 8 }}>
                 <Space direction="vertical" style={{ width: '100%' }}>
                   <Space>
-                    <Text>Separators</Text>
-                    <Tooltip title="Characters to split on (comma separated, e.g. \n\n,\n,., )">
+                    <Text>{t('config.separators.label')}</Text>
+                    <Tooltip title={t('config.separators.tooltip')}>
                       <QuestionCircleOutlined style={{ color: '#bfbfbf' }} />
                     </Tooltip>
                   </Space>
                   <Select
                     mode="tags"
                     style={{ width: '100%' }}
-                    placeholder="Select or type separators"
+                    placeholder={t('config.separators.placeholder')}
                     value={separators ? separators.split(',') : []}
                     onChange={(values) => setSeparators(values.join(','))}
                     options={[
-                      { value: '\\n\\n', label: 'Double Newline (\\n\\n)' },
-                      { value: '\\n', label: 'Newline (\\n)' },
-                      { value: '.', label: 'Period (.)' },
-                      { value: ' ', label: 'Space ( )' },
-                      { value: '', label: 'Empty String' },
+                      { value: '\\n\\n', label: t('config.separators.options.doubleNewline') },
+                      { value: '\\n', label: t('config.separators.options.newline') },
+                      { value: '.', label: t('config.separators.options.period') },
+                      { value: ' ', label: t('config.separators.options.space') },
+                      { value: '', label: t('config.separators.options.empty') },
                     ]}
                   />
                 </Space>
@@ -203,36 +206,36 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
         </Space>
       </div>
 
-      <Divider plain>Enhancement</Divider>
+      <Divider plain>{t('config.enhancement')}</Divider>
       <div style={{ marginBottom: '24px' }}>
         <Space direction="vertical" style={{ width: '100%' }} size="large">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Space>
               <ScissorOutlined />
-              <Text>Clean Text</Text>
+              <Text>{t('config.cleanText')}</Text>
             </Space>
             <Switch checked={cleanText} onChange={setCleanText} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Space>
               <ThunderboltOutlined />
-              <Text>Summary</Text>
+              <Text>{t('config.summary')}</Text>
             </Space>
             <Switch checked={generateSummary} onChange={setGenerateSummary} />
           </div>
         </Space>
       </div>
 
-      <Button 
-        type="primary" 
-        block 
-        size="large" 
-        icon={<RocketOutlined />} 
+      <Button
+        type="primary"
+        block
+        size="large"
+        icon={<RocketOutlined />}
         onClick={handleProcess}
         loading={loading}
         style={{ marginTop: 16 }}
       >
-        Run Processor
+        {t('config.runProcessor')}
       </Button>
     </Card>
   );

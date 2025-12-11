@@ -5,6 +5,7 @@ import { CopyOutlined, ThunderboltOutlined, InfoCircleOutlined, EditOutlined, Sa
 import type { Chunk } from '../types';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 
 const { Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -16,6 +17,7 @@ interface OutputSectionProps {
 }
 
 const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialChunks, totalChunks }) => {
+  const { t } = useTranslation();
   const [chunks, setChunks] = useState<Chunk[]>(initialChunks);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editContent, setEditContent] = useState('');
@@ -41,10 +43,10 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
       const newChunks = [...chunks];
       newChunks[index] = updatedChunk;
       setChunks(newChunks);
-      message.success(`Chunk ${action === 'clean' ? 'cleaned' : 'summarized'} successfully`);
+      message.success(action === 'clean' ? t('output.messages.cleaned') : t('output.messages.summarized'));
     } catch (error) {
       console.error(`Error ${action}ing chunk:`, error);
-      message.error(`Failed to ${action} chunk`);
+      message.error(action === 'clean' ? t('output.messages.failedToClean') : t('output.messages.failedToSummarize'));
     } finally {
       setProcessingChunkIds(prev => {
         const newSet = new Set(prev);
@@ -64,7 +66,7 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
     newChunks[index] = { ...newChunks[index], content: editContent };
     setChunks(newChunks);
     setEditingId(null);
-    message.success('Chunk updated');
+    message.success(t('output.messages.updated'));
   };
 
   const toggleSelect = (index: number) => {
@@ -114,38 +116,38 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
   const exportMenu: MenuProps['items'] = [
     {
       key: 'json',
-      label: 'Export as JSON',
+      label: t('output.exportOptions.json'),
       onClick: () => handleExport('json'),
     },
     {
       key: 'txt',
-      label: 'Export as Text',
+      label: t('output.exportOptions.txt'),
       onClick: () => handleExport('txt'),
     },
     {
       key: 'md',
-      label: 'Export as Markdown',
+      label: t('output.exportOptions.md'),
       onClick: () => handleExport('md'),
     },
   ];
   return (
-    <Card 
+    <Card
       title={
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Space>
             <CopyOutlined />
-            Processed Chunks
-            {selectedChunks.size > 0 && <Tag color="blue">{selectedChunks.size} Selected</Tag>}
+            {t('output.title')}
+            {selectedChunks.size > 0 && <Tag color="blue">{selectedChunks.size} {t('output.selected')}</Tag>}
           </Space>
           <Space>
             {totalChunks > 0 && (
               <Dropdown menu={{ items: exportMenu }}>
                 <Button icon={<DownloadOutlined />}>
-                  Export <DownOutlined />
+                  {t('output.export')} <DownOutlined />
                 </Button>
               </Dropdown>
             )}
-            {totalChunks > 0 && <Tag color="blue">{totalChunks} Chunks</Tag>}
+            {totalChunks > 0 && <Tag color="blue">{totalChunks} {t('output.chunks')}</Tag>}
           </Space>
         </div>
       }
@@ -155,7 +157,7 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
       {loading ? (
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
           <Spin size="large" />
-          <Text type="secondary" style={{ marginTop: 16 }}>Processing...</Text>
+          <Text type="secondary" style={{ marginTop: 16 }}>{t('output.processing')}</Text>
         </div>
       ) : chunks.length > 0 ? (
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
@@ -164,8 +166,8 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
             split={false}
             renderItem={(item, index) => (
               <List.Item style={{ padding: '0 0 16px 0' }}>
-                <Card 
-                  size="small" 
+                <Card
+                  size="small"
                   style={{ width: '100%', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}
                   title={
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -175,11 +177,11 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
                           onChange={() => toggleSelect(index)}
                         />
                         <Tag color="blue">#{index + 1}</Tag>
-                        <Text type="secondary" style={{ fontSize: '12px' }}>Offset: {item.original_index}</Text>
+                        <Text type="secondary" style={{ fontSize: '12px' }}>{t('output.chunk.offset')}: {item.original_index}</Text>
                       </Space>
                       <Space>
                         {editingId === index ? (
-                          <Tooltip title="Save">
+                          <Tooltip title={t('output.chunk.save')}>
                             <Button
                               type="text"
                               icon={<SaveOutlined />}
@@ -189,7 +191,7 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
                           </Tooltip>
                         ) : (
                           <>
-                            <Tooltip title="Clean Text">
+                            <Tooltip title={t('output.chunk.clean')}>
                               <Button
                                 type="text"
                                 icon={<ClearOutlined />}
@@ -198,7 +200,7 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
                                 onClick={() => handleProcessChunk(index, 'clean')}
                               />
                             </Tooltip>
-                            <Tooltip title="Summarize">
+                            <Tooltip title={t('output.chunk.summarize')}>
                               <Button
                                 type="text"
                                 icon={<FileTextOutlined />}
@@ -207,7 +209,7 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
                                 onClick={() => handleProcessChunk(index, 'summarize')}
                               />
                             </Tooltip>
-                            <Tooltip title="Edit">
+                            <Tooltip title={t('output.chunk.edit')}>
                               <Button
                                 type="text"
                                 icon={<EditOutlined />}
@@ -217,14 +219,14 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
                             </Tooltip>
                           </>
                         )}
-                        <Tooltip title="Copy">
+                        <Tooltip title={t('output.chunk.copy')}>
                           <Button
                             type="text"
                             icon={<CopyOutlined />}
                             size="small"
                             onClick={() => {
                               navigator.clipboard.writeText(item.content);
-                              message.success('Copied!');
+                              message.success(t('output.messages.copied'));
                             }}
                           />
                         </Tooltip>
@@ -252,7 +254,7 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
                       <Space align="start">
                         <ThunderboltOutlined style={{ color: '#faad14', marginTop: 4 }} />
                         <div>
-                          <Text strong style={{ fontSize: '12px', color: '#d48806' }}>AI Summary</Text>
+                          <Text strong style={{ fontSize: '12px', color: '#d48806' }}>{t('output.chunk.aiSummary')}</Text>
                           <Paragraph style={{ margin: 0, fontSize: '13px', color: 'rgba(0,0,0,0.65)' }}>{item.summary}</Paragraph>
                         </div>
                       </Space>
@@ -261,9 +263,9 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
 
                   <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px dashed #f0f0f0', display: 'flex', justifyContent: 'flex-end' }}>
                     <Space>
-                      <Text type="secondary" style={{ fontSize: '12px' }}>{item.content.length} chars</Text>
+                      <Text type="secondary" style={{ fontSize: '12px' }}>{item.content.length} {t('output.chunk.chars')}</Text>
                       {item.token_count !== undefined && (
-                        <Tag color="purple" style={{ margin: 0 }}>{item.token_count} tokens</Tag>
+                        <Tag color="purple" style={{ margin: 0 }}>{item.token_count} {t('output.chunk.tokens')}</Tag>
                       )}
                     </Space>
                   </div>
@@ -275,7 +277,7 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
       ) : (
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', color: '#ccc' }}>
           <InfoCircleOutlined style={{ fontSize: '48px', marginBottom: 16 }} />
-          <Text type="secondary">No chunks generated yet</Text>
+          <Text type="secondary">{t('output.noChunks')}</Text>
         </div>
       )}
     </Card>
