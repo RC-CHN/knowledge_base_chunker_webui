@@ -91,6 +91,7 @@ data:
   default.conf: |
     server {
         listen 80;
+        client_max_body_size 50M;
         
         location / {
             root /usr/share/nginx/html;
@@ -99,8 +100,6 @@ data:
         }
 
         location /api {
-            # 在 K8s 内部，使用 Service 名称 'backend' 进行访问
-            # 这里的 'backend' 对应上面定义的 Service 名称
             proxy_pass http://backend:8000;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;

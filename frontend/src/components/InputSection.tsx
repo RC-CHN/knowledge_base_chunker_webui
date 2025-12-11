@@ -41,7 +41,7 @@ const InputSection: React.FC<InputSectionProps> = ({ text, setText }) => {
                 const hide = message.loading(t('input.loading'), 0);
                 
                 try {
-                  const response = await fetch('http://localhost:8000/api/v1/process/upload_file', {
+                  const response = await fetch('/api/v1/process/upload_file', {
                     method: 'POST',
                     body: formData,
                   });
