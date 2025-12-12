@@ -80,6 +80,7 @@
     "title": "已处理切块",
     "selected": "已选",
     "chunks": "切块",
+    "addChunk": "添加切块",
     "export": "导出",
     "exportOptions": {
       "json": "导出为 JSON",

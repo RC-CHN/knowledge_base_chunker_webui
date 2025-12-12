@@ -80,6 +80,7 @@
     "title": "Processed Chunks",
     "selected": "Selected",
     "chunks": "Chunks",
+    "addChunk": "Add Chunk",
     "export": "Export",
     "exportOptions": {
       "json": "Export as JSON",
