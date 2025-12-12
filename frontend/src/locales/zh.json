@@ -1,4 +1,8 @@
 {
+  "common": {
+    "yes": "是",
+    "no": "否"
+  },
   "app": {
     "title": "RAG 切块工具",
     "warnings": {
@@ -93,12 +97,15 @@
       "clean": "清理文本",
       "summarize": "摘要",
       "edit": "编辑",
-      "copy": "复制"
+      "copy": "复制",
+      "delete": "删除",
+      "confirmDelete": "确定要删除这个切块吗？"
     },
     "messages": {
       "cleaned": "切块清理成功",
       "summarized": "切块摘要成功",
       "updated": "切块已更新",
+      "deleted": "切块已删除",
       "copied": "已复制！",
       "failedToClean": "清理切块失败",
       "failedToSummarize": "摘要切块失败"

@@ -63,6 +63,17 @@ class ProcessingService:
 
         return await asyncio.gather(*tasks)
 
+    async def process_chunks_stream(
+        self, chunks: List[Chunk], clean: bool = False, summarize: bool = False
+    ):
+        tasks = []
+        for chunk in chunks:
+            task = self._process_single_chunk_async(chunk, clean, summarize)
+            tasks.append(task)
+
+        for completed_task in asyncio.as_completed(tasks):
+            yield await completed_task
+
     async def _process_single_chunk_async(
         self, chunk: Chunk, clean: bool, summarize: bool
     ) -> Chunk:

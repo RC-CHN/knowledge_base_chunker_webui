@@ -1,5 +1,7 @@
 import logging
+import json
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi.responses import StreamingResponse
 from app.schemas.process import (
     ProcessRequest,
     ProcessResponse,
@@ -33,6 +35,25 @@ async def process_text(
         return await orchestrator.process(request)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/stream")
+async def process_text_stream(
+    request: ProcessRequest, orchestrator: Orchestrator = Depends(get_orchestrator)
+):
+    """
+    Process text with streaming response (Server-Sent Events).
+    """
+    async def event_generator():
+        try:
+            async for event in orchestrator.process_stream(request):
+                yield f"data: {json.dumps(event)}\n\n"
+            yield "data: [DONE]\n\n"
+        except Exception as e:
+            logger.error(f"Error in stream processing: {e}", exc_info=True)
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 @router.post("/chunk", response_model=Chunk)

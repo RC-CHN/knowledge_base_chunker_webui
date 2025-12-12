@@ -1,7 +1,7 @@
 import React from 'react';
-import { Card, List, Tag, Button, Tooltip, Typography, Space, Spin, message, Input, Checkbox, Dropdown } from 'antd';
+import { Card, List, Tag, Button, Tooltip, Typography, Space, Spin, message, Input, Checkbox, Dropdown, Popconfirm } from 'antd';
 import type { MenuProps } from 'antd';
-import { CopyOutlined, ThunderboltOutlined, InfoCircleOutlined, EditOutlined, SaveOutlined, DownloadOutlined, DownOutlined, ClearOutlined, FileTextOutlined } from '@ant-design/icons';
+import { CopyOutlined, ThunderboltOutlined, InfoCircleOutlined, EditOutlined, SaveOutlined, DownloadOutlined, DownOutlined, ClearOutlined, FileTextOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { Chunk } from '../types';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -14,9 +14,10 @@ interface OutputSectionProps {
   loading: boolean;
   chunks: Chunk[];
   totalChunks: number;
+  processedCount?: number;
 }
 
-const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialChunks, totalChunks }) => {
+const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialChunks, totalChunks, processedCount }) => {
   const { t } = useTranslation();
   const [chunks, setChunks] = useState<Chunk[]>(initialChunks);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -67,6 +68,21 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
     setChunks(newChunks);
     setEditingId(null);
     message.success(t('output.messages.updated'));
+  };
+
+  const handleDelete = (index: number) => {
+    const newChunks = chunks.filter((_, i) => i !== index);
+    setChunks(newChunks);
+    
+    // Update selected chunks indices
+    const newSelected = new Set<number>();
+    selectedChunks.forEach(i => {
+      if (i < index) newSelected.add(i);
+      else if (i > index) newSelected.add(i - 1);
+    });
+    setSelectedChunks(newSelected);
+    
+    message.success(t('output.messages.deleted'));
   };
 
   const toggleSelect = (index: number) => {
@@ -154,10 +170,13 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
       style={{ display: 'flex', flexDirection: 'column', height: '100%', maxHeight: 'calc(100vh - 112px)' }}
       styles={{ body: { flex: 1, overflow: 'hidden', padding: 0, display: 'flex', flexDirection: 'column', background: '#fafafa', height: '100%' } }}
     >
-      {loading ? (
+      {loading && chunks.length === 0 ? (
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
           <Spin size="large" />
           <Text type="secondary" style={{ marginTop: 16 }}>{t('output.processing')}</Text>
+          {processedCount !== undefined && totalChunks > 0 && (
+             <Text type="secondary" style={{ marginTop: 8 }}>{processedCount} / {totalChunks}</Text>
+          )}
         </div>
       ) : chunks.length > 0 ? (
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
@@ -230,6 +249,22 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
                             }}
                           />
                         </Tooltip>
+                        <Popconfirm
+                          title={t('output.chunk.delete')}
+                          description={t('output.chunk.confirmDelete')}
+                          onConfirm={() => handleDelete(index)}
+                          okText={t('common.yes') || 'Yes'}
+                          cancelText={t('common.no') || 'No'}
+                        >
+                          <Tooltip title={t('output.chunk.delete')}>
+                            <Button
+                              type="text"
+                              danger
+                              icon={<DeleteOutlined />}
+                              size="small"
+                            />
+                          </Tooltip>
+                        </Popconfirm>
                       </Space>
                     </div>
                   }

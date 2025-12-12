@@ -105,6 +105,82 @@ class Orchestrator:
         logger.info("Processing complete")
         return ProcessResponse(chunks=chunks, total_chunks=len(chunks))
 
+    async def process_stream(self, request: ProcessRequest):
+        logger.info(f"Starting streaming processing request. Text length: {len(request.text)}")
+        chunks: List[Chunk] = []
+
+        # 1. Chunking Phase
+        method = request.chunking_options.method
+        chunk_size = request.chunking_options.chunk_size
+        chunk_overlap = request.chunking_options.chunk_overlap
+
+        if method == "fixed_size":
+            chunks = RuleBasedChunker.chunk_by_fixed_size(
+                request.text, chunk_size, chunk_overlap
+            )
+        elif method == "semantic":
+            if self.semantic_chunker:
+                threshold = request.chunking_options.semantic_threshold or 0.5
+                chunks = self.semantic_chunker.chunk_by_semantics(
+                    request.text, threshold=threshold
+                )
+            else:
+                chunks = RuleBasedChunker.chunk_by_fixed_size(
+                    request.text, chunk_size, chunk_overlap
+                )
+        elif method == "recursive":
+            separators = request.chunking_options.separators
+            chunks = RuleBasedChunker.chunk_recursively(
+                request.text, chunk_size, chunk_overlap, separators=separators
+            )
+        else:
+            chunks = RuleBasedChunker.chunk_by_fixed_size(
+                request.text, chunk_size, chunk_overlap
+            )
+
+        logger.info(f"Generated {len(chunks)} chunks")
+
+        # Yield initial chunks info
+        yield {"type": "progress", "total_chunks": len(chunks), "processed_chunks": 0}
+
+        # 2. Processing Phase
+        if self.processing_service:
+            clean = request.processing_options.clean_text
+            summarize = request.processing_options.generate_summary
+
+            if clean or summarize:
+                processed_count = 0
+                async for processed_chunk in self.processing_service.process_chunks_stream(
+                    chunks, clean=clean, summarize=summarize
+                ):
+                    processed_chunk.token_count = self._count_tokens(processed_chunk.content)
+                    processed_count += 1
+                    yield {
+                        "type": "chunk",
+                        "chunk": processed_chunk.model_dump(),
+                        "processed_chunks": processed_count,
+                        "total_chunks": len(chunks)
+                    }
+            else:
+                # If no processing needed, just yield chunks
+                for i, chunk in enumerate(chunks):
+                    chunk.token_count = self._count_tokens(chunk.content)
+                    yield {
+                        "type": "chunk",
+                        "chunk": chunk.model_dump(),
+                        "processed_chunks": i + 1,
+                        "total_chunks": len(chunks)
+                    }
+        else:
+             for i, chunk in enumerate(chunks):
+                chunk.token_count = self._count_tokens(chunk.content)
+                yield {
+                    "type": "chunk",
+                    "chunk": chunk.model_dump(),
+                    "processed_chunks": i + 1,
+                    "total_chunks": len(chunks)
+                }
+
     async def process_single_chunk(self, chunk: Chunk, action: str) -> Chunk:
         if not self.processing_service:
             raise Exception("Processing service not available")

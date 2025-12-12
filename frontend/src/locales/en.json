@@ -1,4 +1,8 @@
 {
+  "common": {
+    "yes": "Yes",
+    "no": "No"
+  },
   "app": {
     "title": "RAG Chunker",
     "warnings": {
@@ -93,12 +97,15 @@
       "clean": "Clean Text",
       "summarize": "Summarize",
       "edit": "Edit",
-      "copy": "Copy"
+      "copy": "Copy",
+      "delete": "Delete",
+      "confirmDelete": "Are you sure you want to delete this chunk?"
     },
     "messages": {
       "cleaned": "Chunk cleaned successfully",
       "summarized": "Chunk summarized successfully",
       "updated": "Chunk updated",
+      "deleted": "Chunk deleted",
       "copied": "Copied!",
       "failedToClean": "Failed to clean chunk",
       "failedToSummarize": "Failed to summarize chunk"

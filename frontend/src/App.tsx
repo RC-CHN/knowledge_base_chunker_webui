@@ -10,6 +10,7 @@ import {
 } from 'antd';
 import { RocketOutlined, GlobalOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { useTranslation } from 'react-i18next';
 import type { ProcessRequest, ProcessResponse, Chunk } from './types';
 import ConfigurationPanel from './components/ConfigurationPanel';
@@ -25,6 +26,7 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [chunks, setChunks] = useState<Chunk[]>([]);
   const [totalChunks, setTotalChunks] = useState(0);
+  const [processedChunksCount, setProcessedChunksCount] = useState(0);
   
   // State for inputs
   const [text, setText] = useState('');
@@ -43,29 +45,71 @@ const App: React.FC = () => {
     }
 
     setLoading(true);
-    try {
-      const request: ProcessRequest = {
-        text: text,
-        chunking_options: {
-          method: method,
-          chunk_size: chunkSize,
-          chunk_overlap: chunkOverlap,
-          semantic_threshold: semanticThreshold,
-          separators: separators.map(s => s.replace(/\\n/g, '\n')),
-        },
-        processing_options: {
-          clean_text: cleanText,
-          generate_summary: generateSummary,
-        },
-      };
+    setChunks([]);
+    setTotalChunks(0);
+    setProcessedChunksCount(0);
 
-      const response = await axios.post<ProcessResponse>('/api/v1/process/', request);
-      setChunks(response.data.chunks);
-      setTotalChunks(response.data.total_chunks);
-      message.success(t('app.success.processed', { count: response.data.total_chunks }));
+    const request: ProcessRequest = {
+      text: text,
+      chunking_options: {
+        method: method,
+        chunk_size: chunkSize,
+        chunk_overlap: chunkOverlap,
+        semantic_threshold: semanticThreshold,
+        separators: separators.map(s => s.replace(/\\n/g, '\n')),
+      },
+      processing_options: {
+        clean_text: cleanText,
+        generate_summary: generateSummary,
+      },
+    };
+
+    const ctrl = new AbortController();
+    let finalTotalChunks = 0;
+
+    try {
+      await fetchEventSource('/api/v1/process/stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+        signal: ctrl.signal,
+        onmessage(msg) {
+          if (msg.data === '[DONE]') {
+            ctrl.abort();
+            return;
+          }
+          try {
+            const data = JSON.parse(msg.data);
+            if (data.type === 'progress') {
+              setTotalChunks(data.total_chunks);
+              setProcessedChunksCount(data.processed_chunks);
+              finalTotalChunks = data.total_chunks;
+            } else if (data.type === 'chunk') {
+              setChunks(prev => [...prev, data.chunk]);
+              setProcessedChunksCount(data.processed_chunks);
+              setTotalChunks(data.total_chunks);
+              finalTotalChunks = data.total_chunks;
+            } else if (data.error) {
+              throw new Error(data.error);
+            }
+          } catch (e) {
+            console.error('Error parsing stream message:', e);
+          }
+        },
+        onerror(err) {
+          console.error('Stream error:', err);
+          message.error(t('app.errors.processFailed'));
+          throw err; // rethrow to stop retrying
+        },
+      });
     } catch (error) {
-      console.error(error);
-      message.error(t('app.errors.processFailed'));
+      if ((error as Error).name === 'AbortError') {
+        message.success(t('app.success.processed', { count: finalTotalChunks }));
+      } else {
+        console.error(error);
+      }
     } finally {
       setLoading(false);
     }
@@ -157,7 +201,12 @@ const App: React.FC = () => {
                 <InputSection text={text} setText={setText} />
 
                 {/* Right Column: Output */}
-                <OutputSection loading={loading} chunks={chunks} totalChunks={totalChunks} />
+                <OutputSection
+                  loading={loading}
+                  chunks={chunks}
+                  totalChunks={totalChunks}
+                  processedCount={processedChunksCount}
+                />
 
               </div>
             </Content>
