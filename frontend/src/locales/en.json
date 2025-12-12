@@ -100,13 +100,16 @@
       "edit": "Edit",
       "copy": "Copy",
       "delete": "Delete",
-      "confirmDelete": "Are you sure you want to delete this chunk?"
+      "confirmDelete": "Are you sure you want to delete this chunk?",
+      "useSummary": "Use Summary as Content",
+      "confirmUseSummary": "Are you sure you want to replace the chunk content with the summary? This will overwrite the original content."
     },
     "messages": {
       "cleaned": "Chunk cleaned successfully",
       "summarized": "Chunk summarized successfully",
       "updated": "Chunk updated",
       "deleted": "Chunk deleted",
+      "summaryUsed": "Content replaced with summary",
       "copied": "Copied!",
       "failedToClean": "Failed to clean chunk",
       "failedToSummarize": "Failed to summarize chunk"

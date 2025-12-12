@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, List, Tag, Button, Tooltip, Typography, Space, Spin, message, Input, Checkbox, Dropdown, Popconfirm } from 'antd';
 import type { MenuProps } from 'antd';
-import { CopyOutlined, ThunderboltOutlined, InfoCircleOutlined, EditOutlined, SaveOutlined, DownloadOutlined, DownOutlined, ClearOutlined, FileTextOutlined, DeleteOutlined, PlusOutlined, DragOutlined } from '@ant-design/icons';
+import { CopyOutlined, ThunderboltOutlined, InfoCircleOutlined, EditOutlined, SaveOutlined, DownloadOutlined, DownOutlined, ClearOutlined, FileTextOutlined, DeleteOutlined, PlusOutlined, DragOutlined, SwapOutlined } from '@ant-design/icons';
 import type { Chunk } from '../types';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -34,6 +34,7 @@ interface SortableItemProps {
   onDelete: () => void;
   onProcess: (action: 'clean' | 'summarize') => void;
   onEditContentChange: (content: string) => void;
+  onUseSummary: () => void;
   t: any;
 }
 
@@ -51,6 +52,7 @@ const SortableItem = ({
   onDelete,
   onProcess,
   onEditContentChange,
+  onUseSummary,
   t
 }: SortableItemProps) => {
   const {
@@ -175,7 +177,7 @@ const SortableItem = ({
         )}
         
         {chunk.summary && (
-          <div style={{ background: '#fffbe6', padding: '12px', borderRadius: '6px', border: '1px solid #ffe58f', marginTop: 12 }}>
+          <div style={{ background: '#fffbe6', padding: '12px', borderRadius: '6px', border: '1px solid #ffe58f', marginTop: 12, position: 'relative' }}>
             <Space align="start">
               <ThunderboltOutlined style={{ color: '#faad14', marginTop: 4 }} />
               <div>
@@ -183,6 +185,26 @@ const SortableItem = ({
                 <Paragraph style={{ margin: 0, fontSize: '13px', color: 'rgba(0,0,0,0.65)' }}>{chunk.summary}</Paragraph>
               </div>
             </Space>
+            {!editing && (
+              <div style={{ position: 'absolute', top: 8, right: 8 }}>
+                <Popconfirm
+                  title={t('output.chunk.useSummary')}
+                  description={t('output.chunk.confirmUseSummary')}
+                  onConfirm={onUseSummary}
+                  okText={t('common.yes') || 'Yes'}
+                  cancelText={t('common.no') || 'No'}
+                >
+                  <Tooltip title={t('output.chunk.useSummary')}>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<SwapOutlined rotate={90} />}
+                      style={{ color: '#faad14' }}
+                    />
+                  </Tooltip>
+                </Popconfirm>
+              </div>
+            )}
           </div>
         )}
 
@@ -311,6 +333,16 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
     message.success(t('output.messages.deleted'));
   };
 
+  const handleUseSummary = (index: number) => {
+    const chunk = chunks[index];
+    if (chunk.summary) {
+      const newChunks = [...chunks];
+      newChunks[index] = { ...chunk, content: chunk.summary };
+      setChunks(newChunks);
+      message.success(t('output.messages.summaryUsed'));
+    }
+  };
+
   const handleAddChunk = () => {
     const newChunk: Chunk = {
       content: '',
@@ -407,7 +439,7 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
               {t('output.addChunk')}
             </Button>
             {chunks.length > 0 && (
-              <Dropdown menu={{ items: exportMenu }}>
+              <Dropdown menu={{ items: exportMenu }} trigger={['click']}>
                 <Button icon={<DownloadOutlined />}>
                   {t('output.export')} <DownOutlined />
                 </Button>
@@ -455,6 +487,7 @@ const OutputSection: React.FC<OutputSectionProps> = ({ loading, chunks: initialC
                   onDelete={() => handleDelete(index)}
                   onProcess={(action) => handleProcessChunk(index, action)}
                   onEditContentChange={setEditContent}
+                  onUseSummary={() => handleUseSummary(index)}
                   t={t}
                 />
               ))}
